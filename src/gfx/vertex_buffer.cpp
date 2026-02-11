@@ -19,10 +19,6 @@ void gfx::VertexBuffer::bind() const {
     gl::glBindBuffer(gl::GLenum::GL_ARRAY_BUFFER, vertex_buffer);
 }
 
-void gfx::VertexBuffer::draw_triangles(const DrawRange range) const {
-    gl::glDrawArrays(gl::GLenum::GL_TRIANGLES, range.begin_vertex, range.count());
-}
-
 gfx::VertexBuffer::~VertexBuffer() {
     gl::glDeleteBuffers(1, &vertex_buffer);
 }

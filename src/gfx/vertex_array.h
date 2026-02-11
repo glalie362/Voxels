@@ -9,10 +9,11 @@
 namespace gfx {
 
     class VertexBuffer;
+    class IndexBuffer;
 
     class VertexArray {
     public:
-        [[nodiscard]] static VertexArray make_testing(const VertexBuffer& vertex_buffer);
+        [[nodiscard]] static VertexArray make_testing(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer);
         void bind() const;
 
         ~VertexArray();

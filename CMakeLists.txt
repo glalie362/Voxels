@@ -34,6 +34,8 @@ set(SOURCES
         src/main.cpp
         src/gfx/vertex_array.cpp
         src/gfx/vertex_buffer.cpp
+        src/gfx/index_buffer.cpp
+        src/gfx/drawing.cpp
 )
 
 ####################

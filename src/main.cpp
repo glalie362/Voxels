@@ -6,8 +6,11 @@
 #include <GLFW/glfw3.h>
 
 #include "gfx/vertex_buffer.h"
-#include "glbinding/gl/enum.h"
-#include "glm/vec3.hpp"
+#include "gfx/index_buffer.h"
+#include <glm/vec3.hpp>
+
+#include "gfx/drawing.h"
+
 
 int main() {
   using namespace gl;
@@ -24,7 +27,6 @@ int main() {
   glfwMakeContextCurrent(window);
   glbinding::initialize(glfwGetProcAddress);
 
-
   using glm::vec3;
 
   auto vbo = gfx::VertexBuffer::make_fixed(std::array{
@@ -34,12 +36,15 @@ int main() {
   });
   vbo.bind();
 
-  auto vao = gfx::VertexArray::make_testing(vbo);
+  auto ibo = gfx::IndexBuffer::make_fixed(std::array{0, 1, 2});
+
+  auto vao = gfx::VertexArray::make_testing(vbo, ibo);
   vao.bind();
+  ibo.bind();
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
-    vbo.draw_triangles({0u, 3u});
+    gfx::draw_triangles_indexed<gfx::IndexType::Uint>({0, 3});
     glfwSwapBuffers(window);
   }
 

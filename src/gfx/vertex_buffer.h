@@ -12,19 +12,6 @@
 #include <glbinding/gl/functions.h>
 
 namespace gfx {
-
-    struct DrawRange {
-        gl::GLuint begin_vertex{};
-        gl::GLuint end_vertex{};
-
-        constexpr DrawRange(const gl::GLuint begin, const gl::GLuint end) :
-            begin_vertex{begin}, end_vertex{end} {
-            assert(begin <= end);
-        }
-
-        [[nodiscard]] constexpr gl::GLuint count() const noexcept { return end_vertex - begin_vertex; }
-    };
-
     class VertexBuffer {
     public:
         [[nodiscard]] static VertexBuffer make_empty_fixed_size(std::size_t num_bytes);
@@ -38,7 +25,6 @@ namespace gfx {
         }
 
         void bind() const;
-        void draw_triangles(DrawRange range) const;
 
         [[nodiscard]] constexpr gl::GLuint handle() const noexcept {
             return vertex_buffer;
@@ -64,6 +50,8 @@ namespace gfx {
             gl::BufferStorageMask::GL_DYNAMIC_STORAGE_BIT);
         return vbo;
     }
+
+
 }
 
 #endif //VOXEL_GAME_VERTEX_BUFFER_H
