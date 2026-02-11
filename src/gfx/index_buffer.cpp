@@ -6,8 +6,8 @@
 
 #include "glbinding/gl/enum.h"
 
-void gfx::IndexBuffer::bind() const {
-    gl::glBindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+void gfx::IndexBuffer::bind(const IndexBuffer& ibo) {
+    gl::glBindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, ibo.index_buffer);
 }
 
 gfx::IndexBuffer::~IndexBuffer() {

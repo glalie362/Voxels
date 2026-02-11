@@ -15,8 +15,8 @@ gfx::VertexBuffer gfx::VertexBuffer::make_empty_fixed_size(const std::size_t num
     return vbo;
 }
 
-void gfx::VertexBuffer::bind() const {
-    gl::glBindBuffer(gl::GLenum::GL_ARRAY_BUFFER, vertex_buffer);
+void gfx::VertexBuffer::bind(const VertexBuffer& vbo) {
+    gl::glBindBuffer(gl::GLenum::GL_ARRAY_BUFFER, vbo.vertex_buffer);
 }
 
 gfx::VertexBuffer::~VertexBuffer() {

@@ -34,13 +34,10 @@ int main() {
     vec3(1.0f, -1.0f, 0.0f),
     vec3(0.0f, 1.0f, 0.0f)
   });
-  vbo.bind();
-
   auto ibo = gfx::IndexBuffer::make_fixed(std::array{0, 1, 2});
 
   auto vao = gfx::VertexArray::make_testing(vbo, ibo);
-  vao.bind();
-  ibo.bind();
+  gfx::VertexArray::bind(vao);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();

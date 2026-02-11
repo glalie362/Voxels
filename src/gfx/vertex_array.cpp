@@ -21,10 +21,9 @@ gfx::VertexArray gfx::VertexArray::make_testing(const VertexBuffer& vertex_buffe
     return vao;
 }
 
-void gfx::VertexArray::bind() const {
-    gl::glBindVertexArray(vertex_array);
+void gfx::VertexArray::bind(const VertexArray &vao) {
+    gl::glBindVertexArray(vao.vertex_array);
 }
-
 
 gfx::VertexArray::~VertexArray() {
     gl::glDeleteVertexArrays(1, &vertex_array);

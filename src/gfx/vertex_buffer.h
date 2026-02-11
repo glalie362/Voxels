@@ -24,7 +24,7 @@ namespace gfx {
             return make_fixed<T>(std::span{arr});
         }
 
-        void bind() const;
+        static void bind(const VertexBuffer& vbo);
 
         [[nodiscard]] constexpr gl::GLuint handle() const noexcept {
             return vertex_buffer;

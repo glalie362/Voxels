@@ -34,7 +34,7 @@ namespace gfx {
             return index_buffer;
         }
 
-        void bind() const;
+        static void bind(const IndexBuffer& ibo);
 
         ~IndexBuffer();
         IndexBuffer(IndexBuffer&&);
