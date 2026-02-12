@@ -17,7 +17,7 @@ namespace gfx {
     {
         std::is_integral_v<T> &&
         std::is_unsigned_v<T> &&
-        (sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8);
+        (sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4);
     };
 
     class IndexBuffer {
@@ -44,7 +44,6 @@ namespace gfx {
         IndexBuffer() = default;
         IndexBuffer(const IndexBuffer&) = delete;
         IndexBuffer& operator=(const IndexBuffer&) = delete;
-
         gl::GLuint index_buffer{};
     };
 

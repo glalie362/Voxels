@@ -36,7 +36,9 @@ set(SOURCES
         src/gfx/vertex_buffer.cpp
         src/gfx/index_buffer.cpp
         src/gfx/drawing.cpp
+        src/gfx/shader.cpp
 )
+
 
 ####################
 

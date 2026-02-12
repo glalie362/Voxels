@@ -29,7 +29,6 @@ namespace gfx {
         Ubyte,
         Ushort,
         Uint,
-        Ulong,
     };
 
     template<IndexType index_type>
@@ -39,7 +38,6 @@ namespace gfx {
                 case IndexType::Ubyte: return gl::GL_UNSIGNED_BYTE;
                 case IndexType::Ushort: return gl::GL_UNSIGNED_SHORT;
                 case IndexType::Uint: return gl::GL_UNSIGNED_INT;
-                case IndexType::Ulong: return gl::GL_UNSIGNED_INT64_ARB;
             }
             std::unreachable();
         };

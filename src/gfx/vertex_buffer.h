@@ -4,7 +4,6 @@
 
 #ifndef VOXEL_GAME_VERTEX_BUFFER_H
 #define VOXEL_GAME_VERTEX_BUFFER_H
-#include <cassert>
 #include <span>
 
 #include <glbinding/gl/types.h>
