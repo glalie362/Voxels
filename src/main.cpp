@@ -36,7 +36,7 @@ in vec3 color;
 out vec4 frag;
 
 void main() {
-  frag = vec4(color, 1.0);
+  frag = vec4(cdasolor, 1.0);
 }
 )";
 
@@ -55,15 +55,17 @@ int main() {
   glfwMakeContextCurrent(window);
   glbinding::initialize(glfwGetProcAddress);
 
-  using glm::vec3;
+  const auto program = gfx::Shader::from_source(
+    test_vertex_source,
+    test_fragment_source
+  );
 
-  const auto program = gfx::Shader::from_source(test_vertex_source, test_fragment_source);
-  gfx::Shader::bind(program);
-
-  if (const auto linker_error  = program.linker_error(); linker_error) {
-    std::cerr << *linker_error << '\n';
+  if (!program) {
+    std::cerr << program.error() << '\n';
+    return 1;
   }
 
+  using glm::vec3;
   using xyz = vec3;
   using rgb = vec3;
 

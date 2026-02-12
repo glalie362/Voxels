@@ -4,6 +4,7 @@
 #include "shader.h"
 
 #include <fstream>
+#include <optional>
 
 #include "glbinding/gl/enum.h"
 #include "glbinding/gl/functions.h"
@@ -24,7 +25,7 @@ static gl::GLuint make_program(const gl::GLuint vertex_shader, const gl::GLuint 
     return program;
 }
 
-static std::optional<gfx::Shader::LinkerError> make_link_error(
+static std::optional<gfx::LinkerError> make_link_error(
     const std::string_view vertex_source,
     const std::string_view fragment_source,
     const gl::GLuint program) {
@@ -44,10 +45,10 @@ static std::optional<gfx::Shader::LinkerError> make_link_error(
     log.resize(log_length);
     gl::glGetProgramInfoLog(program, log_length, nullptr, log.data());
 
-    return gfx::Shader::LinkerError(vertex_source, fragment_source, log);
+    return gfx::LinkerError(vertex_source, fragment_source, log);
 }
 
-gfx::Shader gfx::Shader::from_files(
+std::expected<gfx::Shader, gfx::LinkerError> gfx::Shader::from_files(
     const std::string_view vertex_filepath,
     const std::string_view fragment_filepath
 ) {
@@ -64,22 +65,28 @@ gfx::Shader gfx::Shader::from_files(
     const auto fragment_shader = make_shader(gl::GL_FRAGMENT_SHADER, fragment_source);
 
     Shader shader (make_program(vertex_shader, fragment_shader));
-    shader.error = make_link_error(vertex_source, fragment_source, shader.program);
+    const auto error = make_link_error(vertex_source, fragment_source, shader.program);
 
     // cleanup
     gl::glDeleteShader(vertex_shader);
     gl::glDeleteShader(fragment_shader);
+
+    if (error) return std::unexpected(*error);
+
     return shader;
 }
 
-gfx::Shader gfx::Shader::from_source(const std::string_view vertex_source, const std::string_view fragment_source) {
+std::expected<gfx::Shader, gfx::LinkerError>  gfx::Shader::from_source(const std::string_view vertex_source, const std::string_view fragment_source) {
     const auto vertex_shader = make_shader(gl::GL_VERTEX_SHADER, vertex_source);
     const auto fragment_shader = make_shader(gl::GL_FRAGMENT_SHADER, fragment_source);
     Shader shader (make_program(vertex_shader, fragment_shader));
-    shader.error = make_link_error(vertex_source, fragment_source, shader.program);
+    const auto error = make_link_error(vertex_source, fragment_source, shader.program);
     // cleanup
     gl::glDeleteShader(vertex_shader);
     gl::glDeleteShader(fragment_shader);
+
+    if (error) return std::unexpected(*error);
+
     return shader;
 }
 
@@ -94,18 +101,16 @@ gfx::Shader::~Shader() {
 gfx::Shader::Shader(Shader && temp) {
     program = temp.program;
     temp.program = 0;
-    error = temp.error;
 }
 
 gfx::Shader& gfx::Shader::operator=(Shader&& temp) {
     gl::glDeleteProgram(program);
     program = temp.program;
     temp.program = 0;
-    error = temp.error;
     return *this;
 }
 
-std::ostream & operator<<(std::ostream & os, const gfx::Shader::LinkerError& err) {
+std::ostream & operator<<(std::ostream & os, const gfx::LinkerError& err) {
     os << "Begin Linker Error\n";
     os << "Log: " << err.log << '\n';
     os << "Vertex Source: " << err.vertex_source << '\n';

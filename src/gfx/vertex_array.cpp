@@ -30,7 +30,7 @@ template<typename Vertex>
 static gl::GLuint with_attribute(const gl::GLuint vao, const gfx::VertexBuffer& buffer, const Attribute attribute) {
     gl::glEnableVertexArrayAttrib(vao, attribute.index);
     gl::glVertexArrayVertexBuffer(vao, attribute.index, buffer.handle(), attribute.offset, sizeof(Vertex));
-    gl::glVertexArrayAttribFormat(vao, attribute.index, attribute.size, gl::GLenum::GL_FLOAT, gl::GL_FALSE, 0);
+    gl::glVertexArrayAttribFormat(vao, attribute.index, attribute.size, attribute.type, gl::GL_FALSE, 0);
     gl::glVertexArrayAttribBinding(vao, attribute.index, attribute.index);
     return vao;
 }
