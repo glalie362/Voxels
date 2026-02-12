@@ -8,6 +8,7 @@
 #include <expected>
 
 #include "glbinding/gl/types.h"
+#include "glm/fwd.hpp"
 
 namespace gfx {
     struct LinkerError {
@@ -31,21 +32,21 @@ namespace gfx {
             std::string_view fragment_filepath
         );
 
-        [[nodiscard]]static std::expected<Shader, LinkerError> from_source(
+        [[nodiscard]] static std::expected<Shader, LinkerError> from_source(
             std::string_view vertex_source,
             std::string_view fragment_source
         );
 
         static void bind(const Shader &shader);
+        void uniform_matrix(std::string_view name, const glm::mat4& matrix) const;
+
         ~Shader();
         Shader(Shader &&);
         Shader &operator =(Shader &&);
     private:
         constexpr explicit Shader(const gl::GLuint program) : program (program) {}
-
         Shader(const Shader &) = delete;
         Shader &operator =(const Shader &) = delete;
-
         gl::GLuint program{};
     };
 }

@@ -37,6 +37,7 @@ set(SOURCES
         src/gfx/index_buffer.cpp
         src/gfx/drawing.cpp
         src/gfx/shader.cpp
+        src/rend/camera.cpp
 )
 
 

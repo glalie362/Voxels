@@ -9,6 +9,8 @@
 #include "glbinding/gl/enum.h"
 #include "glbinding/gl/functions.h"
 
+#include "glm/mat4x4.hpp"
+
 static gl::GLuint make_shader (const gl::GLenum type, const std::string_view source) {
     const char* source_ptr = source.data();
     const gl::GLuint shader = gl::glCreateShader(type);
@@ -92,6 +94,12 @@ std::expected<gfx::Shader, gfx::LinkerError>  gfx::Shader::from_source(const std
 
 void gfx::Shader::bind(const Shader &shader) {
     gl::glUseProgram(shader.program);
+}
+
+void gfx::Shader::uniform_matrix(std::string_view name, const glm::mat4 &matrix) const {
+    const gl::GLint location = gl::glGetUniformLocation(program, name.data());
+    if (location == -1) return;
+    gl::glProgramUniformMatrix4fv(program, location, 1, gl::GL_FALSE, &matrix[0][0]);
 }
 
 gfx::Shader::~Shader() {
