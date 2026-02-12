@@ -8,9 +8,14 @@
 #include "glbinding/gl/enum.h"
 #include "glbinding/gl/functions.h"
 
+gl::GLuint gfx::detail::make_gl_vertex_buffer() {
+    gl::GLuint vertex_buffer{};
+    gl::glCreateBuffers(1, &vertex_buffer);
+    return vertex_buffer;
+}
+
 gfx::VertexBuffer gfx::VertexBuffer::make_empty_fixed_size(const std::size_t num_bytes) {
-    VertexBuffer vbo{};
-    gl::glCreateBuffers(1, &vbo.vertex_buffer);
+    VertexBuffer vbo{detail::make_gl_vertex_buffer()};
     gl::glNamedBufferStorage(vbo.vertex_buffer, num_bytes, nullptr, gl::BufferStorageMask::GL_DYNAMIC_STORAGE_BIT);
     return vbo;
 }

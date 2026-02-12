@@ -11,6 +11,10 @@
 #include <glbinding/gl/functions.h>
 
 namespace gfx {
+    namespace detail {
+        [[nodiscard]] gl::GLuint make_gl_vertex_buffer();
+    }
+
     class VertexBuffer {
     public:
         [[nodiscard]] static VertexBuffer make_empty_fixed_size(std::size_t num_bytes);
@@ -30,18 +34,18 @@ namespace gfx {
         }
 
         ~VertexBuffer();
-        VertexBuffer(VertexBuffer const&) = delete;
-        VertexBuffer& operator=(VertexBuffer const&) = delete;
         VertexBuffer(VertexBuffer&&);
         VertexBuffer& operator=(VertexBuffer&&);
     private:
-        VertexBuffer() = default;
+        constexpr explicit VertexBuffer(const gl::GLuint vertex_buffer) : vertex_buffer(vertex_buffer) {}
+        VertexBuffer(VertexBuffer const&) = delete;
+        VertexBuffer& operator=(VertexBuffer const&) = delete;
         gl::GLuint vertex_buffer{};
     };
 
     template<typename T>
     VertexBuffer VertexBuffer::make_fixed(const std::span<const T> data) {
-        VertexBuffer vbo{};
+        VertexBuffer vbo{detail::make_gl_vertex_buffer()};
         gl::glCreateBuffers(1, &vbo.vertex_buffer);
         gl::glNamedBufferStorage(vbo.vertex_buffer,
             data.size_bytes(),

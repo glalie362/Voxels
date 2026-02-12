@@ -12,6 +12,10 @@
 #include "glbinding/gl/types.h"
 
 namespace gfx {
+    namespace detail {
+        [[nodiscard]] gl::GLuint make_gl_index_buffer();
+    }
+
     template<typename T>
     concept Index = requires(T a)
     {
@@ -41,7 +45,7 @@ namespace gfx {
         IndexBuffer& operator=(IndexBuffer&&);
 
     private:
-        IndexBuffer() = default;
+        constexpr explicit IndexBuffer(const gl::GLuint index_buffer) : index_buffer(index_buffer) {}
         IndexBuffer(const IndexBuffer&) = delete;
         IndexBuffer& operator=(const IndexBuffer&) = delete;
         gl::GLuint index_buffer{};
@@ -49,8 +53,7 @@ namespace gfx {
 
     template<Index I>
     IndexBuffer IndexBuffer::make_fixed(const std::span<const I> data) {
-        IndexBuffer ibo{};
-        gl::glCreateBuffers(1, &ibo.index_buffer);
+        IndexBuffer ibo{detail::make_gl_index_buffer()};
         gl::glNamedBufferStorage(ibo.index_buffer,
             data.size_bytes(),
             data.data(),
