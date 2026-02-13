@@ -30,8 +30,8 @@ out vec3 color;
 
 void main()
 {
-    color  = in_color;
     normal = in_normal;
+    color  = in_color;
     gl_Position = projection * view * vec4(in_position, 1.0);
 }
 )";
@@ -46,9 +46,20 @@ out vec4 frag;
 
 void main()
 {
-    frag = vec4(color, 1.0);
+    float light = max(0.3, dot(normal, normalize(vec3(0.4, 2.0, 0.6))));
+    frag = vec4(color * light, 1.0);
 }
 )";
+
+static float hash(const glm::ivec3& p) {
+    uint32_t h =
+        uint32_t(p.x) * 374761393u ^
+        uint32_t(p.y) * 668265263u ^
+        uint32_t(p.z) * 2147483647u;
+
+    h = (h ^ (h >> 13)) * 1274126177u;
+    return float(h & 0x00FFFFFF) / float(0x00FFFFFF); // 0..1
+}
 
 static vox::VoxelMesh test() {
     struct Voxel {
@@ -62,34 +73,81 @@ static vox::VoxelMesh test() {
         [[nodiscard]] constexpr glm::vec3 colorized() const noexcept {
             return color;
         }
-
     };
 
-    const auto sampler = [](glm::ivec3 p) -> Voxel {
-        return {
-            .solid = (p == glm::ivec3{0, 0, 0}),
-            .color = {1.0f, 0.0f, 0.0f}
-        };
+
+
+    const auto sampler = [](const glm::ivec3 p) -> Voxel {
+        Voxel v{};
+
+        const glm::vec3 pos = glm::vec3(p);
+
+        // --- Floating island base (sphere falloff) ---
+        const float islandRadius = 35.0f;
+        const float d = glm::length(pos);
+
+        if (d > islandRadius)
+            return v; // empty space
+
+        // --- Height-based terrain deformation ---
+        const float heightNoise =
+            6.0f * sinf(pos.x * 0.15f) * cosf(pos.z * 0.15f) +
+            3.0f * sinf(pos.x * 0.05f + pos.z * 0.05f);
+
+        const float terrainHeight = 10.0f + heightNoise;
+
+        if (pos.y > terrainHeight)
+            return v;
+
+        // --- Carve caves ---
+        const float caveNoise =
+            sinf(pos.x * 0.2f) *
+            sinf(pos.y * 0.2f) *
+            sinf(pos.z * 0.2f);
+
+        if (caveNoise > 0.6f)
+            return v;
+
+        v.solid = true;
+
+        // --- Color logic ---
+        if (pos.y > terrainHeight - 1.5f) {
+            // Grass
+            v.color = {0.2f, 0.8f, 0.3f};
+        }
+        else if (pos.y > -5.0f) {
+            // Dirt
+            v.color = {0.45f, 0.3f, 0.15f};
+        }
+        else {
+            // Stone
+            v.color = {0.5f, 0.5f, 0.55f};
+        }
+
+        // --- Glowing core in the center ---
+        if (glm::length(pos) < 6.0f) {
+            v.color = {1.0f, 0.3f, 0.1f}; // lava core
+        }
+
+        v.color -= hash(pos) * 0.1f;
+
+        return v;
     };
 
     const auto mesher = vox::make_blocky_mesher<decltype(sampler)>({
-        .from = {-10, -10, -10},
-        .to   = { 10,  10,  10},
+        .from = {-50, -50, -50},
+        .to   = { 50,  50,  50},
     });
 
     return mesher(sampler);
 }
 
-int main()
-{
+
+int main() {
     using namespace gl;
-
-    if (!glfwInit())
-        return 1;
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Hello World", nullptr, nullptr);
-    if (!window)
-        return 1;
+    if (!glfwInit()) return 1;
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Hello World", nullptr, nullptr);
+    if (!window) return 1;
 
     glfwMakeContextCurrent(window);
     glbinding::initialize(glfwGetProcAddress);
@@ -114,13 +172,14 @@ int main()
     gfx::VertexArray::bind(vao);
 
     rend::FirstPersonCamera camera;
-    camera.eye    = {0.0f, 0.0f, 5.0f};
-    camera.screen = {800.0f, 600.0f};
+    camera.eye    = {5.0f, 30.0f, 12.6f};
+    camera.screen = {1920.0f, 1080.0f};
+    camera.yaw = 45.0f;
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    glClearColor(0.8f, 0.95f, 1.0f, 1.0f);
+    glClearColor(0.5f, 0.65f, 1.0f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

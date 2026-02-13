@@ -30,7 +30,7 @@ namespace vox {
                 const unsigned num_verts = static_cast<unsigned int>(vertices.size());
                 indices.insert( indices.end(), {
                     num_verts + TopLeft, num_verts + TopRight, num_verts + BottomRight,
-                    num_verts + BottomRight, num_verts + BottomLeft, + TopLeft
+                    num_verts + BottomRight, num_verts + BottomLeft, num_verts + TopLeft
                 });
             };
 
@@ -46,7 +46,7 @@ namespace vox {
             constexpr glm::vec3 Up { 0.0f, 1.0f, 0.0f};
             constexpr glm::vec3 Down { 0.0f, -1.0f, 0.0f};
             constexpr glm::vec3 Left { -1.0f, 0.0f, 0.0f};
-            constexpr glm::vec3 Right { 1.0f, 1.0f, 0.0f};
+            constexpr glm::vec3 Right { 1.0f, 0.0f, 0.0f};
             constexpr glm::vec3 Front { 0.0f, 0.0f, -1.0f};
             constexpr glm::vec3 Back { 0.0f, 0.0f, 1.0f};
 
