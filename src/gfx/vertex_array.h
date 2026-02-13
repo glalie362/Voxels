@@ -9,18 +9,12 @@
 #include "glm/vec3.hpp"
 
 namespace gfx {
-
-    struct VertexTesting {
-        glm::vec3 xyz{};
-        glm::vec3 rgb{};
-    };
-
     class VertexBuffer;
     class IndexBuffer;
 
     class VertexArray {
     public:
-        [[nodiscard]] static VertexArray make_testing(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer);
+        [[nodiscard]] static VertexArray make_voxel(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer);
         static void bind(const VertexArray& vao);
         ~VertexArray();
         VertexArray(VertexArray&&);

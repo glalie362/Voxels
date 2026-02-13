@@ -9,6 +9,7 @@
 #include "glbinding/gl/functions.h"
 
 #include <glm/glm.hpp>
+#include "../vox/voxel.h"
 
 static gl::GLuint make_vao() {
     gl::GLuint vertex_array;
@@ -35,22 +36,33 @@ static gl::GLuint with_attribute(const gl::GLuint vao, const gfx::VertexBuffer& 
     return vao;
 }
 
-gfx::VertexArray gfx::VertexArray::make_testing(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer) {
+gfx::VertexArray gfx::VertexArray::make_voxel(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer) {
     enum {
         Position,
+        Normal,
         Color
     };
 
+    using Vertex = vox::VoxelMesh::Vertex;
+
     VertexArray vao{make_vao()};
-    vao.vertex_array = with_attribute<VertexTesting>(vao.vertex_array, vertex_buffer, Attribute{
+    vao.vertex_array = with_attribute<Vertex>(vao.vertex_array, vertex_buffer, Attribute{
         .index = Position,
-        .offset = offsetof(VertexTesting, xyz),
+        .offset = offsetof(Vertex, position),
         .size = 3,
         .type = gl::GLenum::GL_FLOAT
     });
-    vao.vertex_array = with_attribute<VertexTesting>(vao.vertex_array, vertex_buffer, Attribute{
+
+    vao.vertex_array = with_attribute<Vertex>(vao.vertex_array, vertex_buffer, Attribute{
+        .index = Normal,
+        .offset = offsetof(Vertex, normal),
+        .size = 3,
+        .type = gl::GLenum::GL_FLOAT
+    });
+
+    vao.vertex_array = with_attribute<Vertex>(vao.vertex_array, vertex_buffer, Attribute{
         .index = Color,
-        .offset = offsetof(VertexTesting, rgb),
+        .offset = offsetof(Vertex, color),
         .size = 3,
         .type = gl::GLenum::GL_FLOAT
     });
