@@ -6,7 +6,6 @@
 #define VOXEL_GAME_VOXEL_H
 
 #include <concepts>
-#include <span>
 #include <glm/vec3.hpp>
 
 namespace vox {

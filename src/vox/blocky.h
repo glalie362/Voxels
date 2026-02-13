@@ -6,7 +6,6 @@
 #define VOXEL_GAME_BLOCKY_H
 
 #include "voxel.h"
-#include  "voxel.h"
 
 namespace vox {
     template<VoxelSampler Sampler>
@@ -14,6 +13,7 @@ namespace vox {
         std::vector<VoxelMesh> lookup_table;
         lookup_table.resize(0b1000000);
 
+        // this mesh generator precomputes all the configurations of each voxel face
         for (size_t config = 0; config < 0b1000000; ++config) {
             const bool is_up_face    = config & 0b000001;
             const bool is_down_face  = config & 0b000010;
@@ -139,8 +139,6 @@ namespace vox {
 
                 if (!mask) return;
 
-                std::cerr << (int) mask << '\n';
-
                 const auto num_vertices = mesh.vertices.size();
                 const auto& lookup = lookup_table.at(mask);
 
@@ -152,7 +150,7 @@ namespace vox {
                     mesh.vertices.emplace_back(transformed);
                 }
 
-                for (const auto& indice  : lookup.indices) {
+                for (const auto indice  : lookup.indices) {
                     mesh.indices.emplace_back(indice + num_vertices);
                 }
             });
