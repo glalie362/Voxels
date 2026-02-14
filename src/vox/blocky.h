@@ -128,14 +128,21 @@ namespace vox {
             sample_each(bounds, sampler, [&](const glm::ivec3 p, const auto& voxel) {
                 if (!voxel.is_solid()) return;
 
+                const auto get = [&](const auto p) -> decltype(sampler(glm::ivec3())){
+                    if (p.x < bounds.from.x || p.x >= bounds.to.x) return {};
+                    if (p.y < bounds.from.y || p.y >= bounds.to.y) return {};
+                    if (p.z < bounds.from.z || p.z >= bounds.to.z) return {};
+                    return sampler(p);
+                };
+
                 // use this to look up the pre-computed shape of the voxel
                 const std::uint8_t mask =
-                        static_cast<std::uint8_t>(!sampler(p + Up).is_solid())
-                    |   static_cast<std::uint8_t>(!sampler(p + Down).is_solid()) << 1
-                    |   static_cast<std::uint8_t>(!sampler(p + Left).is_solid()) << 2
-                    |   static_cast<std::uint8_t>(!sampler(p + Right).is_solid()) << 3
-                    |   static_cast<std::uint8_t>(!sampler(p + Front).is_solid()) << 4
-                    |   static_cast<std::uint8_t>(!sampler(p + Back).is_solid()) << 5;
+                        static_cast<std::uint8_t>(!get(p + Up).is_solid())
+                    |   static_cast<std::uint8_t>(!get(p + Down).is_solid()) << 1
+                    |   static_cast<std::uint8_t>(!get(p + Left).is_solid()) << 2
+                    |   static_cast<std::uint8_t>(!get(p + Right).is_solid()) << 3
+                    |   static_cast<std::uint8_t>(!get(p + Front).is_solid()) << 4
+                    |   static_cast<std::uint8_t>(!get(p + Back).is_solid()) << 5;
 
                 if (!mask) return;
 
