@@ -5,6 +5,8 @@
 #ifndef VOXEL_GAME_BLOCKY_H
 #define VOXEL_GAME_BLOCKY_H
 
+#include <chrono>
+
 #include "voxel.h"
 
 namespace vox {
@@ -114,6 +116,9 @@ namespace vox {
         }
 
         const auto mesher = [bounds, lookup_table](const Sampler& sampler) -> VoxelMesh {
+            using clock = std::chrono::high_resolution_clock;
+            const auto time_begin = clock::now();
+
             VoxelMesh mesh{};
             mesh.vertices.reserve(0xFFFF);
             mesh.indices.reserve(0xFFFF);
@@ -162,8 +167,13 @@ namespace vox {
                 }
             });
 
-            std::cerr << "num verts: " << mesh.vertices.size() << '\n';
-            std::cerr << "num elems: " << mesh.indices.size() << '\n';
+
+            const auto time_end = clock::now();
+            const auto duration_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_begin);
+
+            std::cout << "num verts: " << mesh.vertices.size() << '\n';
+            std::cout << "num elems: " << mesh.indices.size() << '\n';
+            std::cout << "time (us): " << duration_microseconds << '\n';
             return mesh;
         };
 

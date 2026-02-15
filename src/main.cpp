@@ -1,3 +1,4 @@
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glbinding/glbinding.h>
 
 #define GLFW_INCLUDE_NONE
@@ -14,6 +15,8 @@
 
 #include "vox/blocky.h"
 #include "rend/camera.h"
+
+#include <glm/gtx/hash.hpp>
 
 constexpr std::string_view test_vertex_source = R"(
 #version 460 core
@@ -61,7 +64,7 @@ static float hash(const glm::ivec3& p) {
     return float(h & 0x00FFFFFF) / float(0x00FFFFFF); // 0..1
 }
 
-static vox::VoxelMesh explosion(const float time) {
+static vox::VoxelMesh test(){
     struct Voxel {
         bool solid{};
         glm::vec3 color{1.0f};
@@ -75,123 +78,29 @@ static vox::VoxelMesh explosion(const float time) {
         }
     };
 
-    const auto sampler = [time](const glm::ivec3 p) -> Voxel {
-        glm::vec3 pos = glm::vec3(p);
+    constexpr static int W = 32;
+    constexpr static int H = 32;
+    constexpr static int D = 32;
+    Voxel voxels[W][H][D] {};
 
-        // ----------------------------------
-        // Rotation
-        // ----------------------------------
-
-        float rot_speed = 0.8f;
-        float angle_y = time * rot_speed;
-        float angle_x = sin(time * 1.2f) * 0.3f; // subtle wobble
-
-        glm::mat3 rotY = glm::mat3(
-            glm::vec3( cos(angle_y), 0.0f, sin(angle_y)),
-            glm::vec3( 0.0f,         1.0f, 0.0f        ),
-            glm::vec3(-sin(angle_y), 0.0f, cos(angle_y))
-        );
-
-        glm::mat3 rotX = glm::mat3(
-            glm::vec3(1.0f, 0.0f,          0.0f         ),
-            glm::vec3(0.0f, cos(angle_x), -sin(angle_x)),
-            glm::vec3(0.0f, sin(angle_x),  cos(angle_x))
-        );
-
-        // Apply rotation to sample space
-        pos = rotY * rotX * pos;
-
-        const float size = 8.0f;
-        const float stage_duration = 3.0f;
-        const float total_duration = stage_duration * 2.0f;
-
-        float t_total = fmod(time, total_duration);
-
-        // -------------------------------------------------
-        // Bounce easing (overshoot)
-        // -------------------------------------------------
-        auto ease_out_back = [](float t) {
-            const float c1 = 2.8f;      // increase for more bounce
-            const float c3 = c1 + 1.0f;
-            return 1.0f + c3 * std::pow(t - 1.0f, 3.0f)
-                         + c1 * std::pow(t - 1.0f, 2.0f);
-        };
-
-        // -------------------------------------------------
-        // SDF: Cube
-        // -------------------------------------------------
-        glm::vec3 half_extents(size);
-        glm::vec3 q = glm::abs(pos) - half_extents;
-
-        float sdf_cube =
-            glm::length(glm::max(q, glm::vec3(0.0f))) +
-            glm::min(glm::max(q.x, glm::max(q.y, q.z)), 0.0f);
-
-        // -------------------------------------------------
-        // SDF: Sphere
-        // -------------------------------------------------
-        float sdf_sphere = glm::length(pos) - size;
-
-        // -------------------------------------------------
-        // SDF: Torus (around Y axis)
-        // -------------------------------------------------
-        float sdf_torus;
-        {
-            float R = size * 0.7f;  // major radius
-            float r = size * 0.3f;  // minor radius
-
-            glm::vec2 tpos(
-                glm::length(glm::vec2(pos.x, pos.z)) - R,
-                pos.y
-            );
-
-            sdf_torus = glm::length(tpos) - r;
+    for (int x = 0; x < W; ++x) {
+        for (int z = 0; z < D; ++z) {
+            voxels[x][0][z] = {.solid = true, .color = {0.5f, 0.5f, 0.5f}};
+            voxels[x][1][z] = {.solid = true, .color = {0.5f, 0.5f, 0.5f}};
+            voxels[x][2][z] = {.solid = true, .color = {0.5f, 0.5f, 0.5f}};
+            voxels[x][3][z] = {.solid = true, .color = {0.4f, 0.3f, 0.3f}};
+            voxels[x][4][z] = {.solid = true, .color = {0.4f, 0.3f, 0.3f}};
+            voxels[x][5][z] = {.solid = true, .color = {0.3f, 0.8f, 0.2f}};
         }
+    }
 
-        float sdf = 0.0f;
-        float t = 0.0f;
-
-        // -------------------------------------------------
-        // Stage Selection
-        // -------------------------------------------------
-        if (t_total < stage_duration) {
-            // Cube → Sphere
-            float local = t_total / stage_duration;
-            t = ease_out_back(local);
-
-            sdf = glm::mix(sdf_cube, sdf_sphere, t);
-        }
-        else {
-            // Sphere → Torus
-            float local = (t_total - stage_duration) / stage_duration;
-            t = ease_out_back(local);
-
-            sdf = glm::mix(sdf_sphere, sdf_torus, t);
-        }
-
-        Voxel v{};
-
-        if (sdf < 0.0f) {
-            v.solid = true;
-
-            glm::vec3 blue   = {0.1f, 0.3f, 1.0f};
-            glm::vec3 red    = {1.0f, 0.1f, 0.1f};
-            glm::vec3 purple = {0.7f, 0.2f, 0.9f};
-
-            if (t_total < stage_duration)
-                v.color = glm::mix(blue, red, glm::clamp(t, 0.0f, 1.0f));
-            else
-                v.color = glm::mix(red, purple, glm::clamp(t, 0.0f, 1.0f));
-        }
-
-        v.color -= hash(p) * 0.1f;
-
-        return v;
+    const auto sampler = [&](const glm::ivec3 p) -> Voxel {
+        return voxels[p.x][p.y][p.z];
     };
 
     const auto mesher = vox::make_blocky_mesher<decltype(sampler)>({
-        .from = {-20, -20, -20},
-        .to   = { 20,  20,  20},
+        .from = {0, 0, 0},
+        .to   = { W,  H,  D},
     });
 
     return mesher(sampler);
@@ -219,36 +128,10 @@ int main() {
 
     gfx::Shader::bind(*program);
 
-    struct Frame {
-        vox::VoxelMesh mesh;
-        gfx::VertexBuffer vbo;
-        gfx::IndexBuffer ibo;
-        gfx::VertexArray vao;
-
-        constexpr explicit Frame(
-            const vox::VoxelMesh& mesh,
-            gfx::VertexBuffer&& vbo,
-            gfx::IndexBuffer&& ibo,
-            gfx::VertexArray&& vao
-        ) : mesh(mesh), vbo(std::move(vbo)), ibo(std::move(ibo)), vao(std::move(vao)) {}
-    };
-
-    // generate the frames :)
-    std::vector<Frame> frames;
-    for (float t = 0.0f; t < 6.0f; t += 0.1f) {
-        const auto mesh = explosion(t);
-        const auto& [vertices, indices] = mesh;
-        auto vbo = gfx::VertexBuffer::make_fixed(std::span(vertices));
-        auto ibo = gfx::IndexBuffer::make_fixed(std::span(indices));
-        auto vao = gfx::VertexArray::make_voxel(vbo, ibo);
-
-        frames.emplace_back(
-            mesh,
-            std::move(vbo),
-            std::move(ibo),
-            std::move(vao) );
-    }
-
+    const auto& [vertices, indices] = test();
+    auto vbo = gfx::VertexBuffer::make_fixed(std::span(vertices));
+    auto ibo = gfx::IndexBuffer::make_fixed(std::span(indices));
+    auto vao = gfx::VertexArray::make_voxel(vbo, ibo);
 
     rend::FirstPersonCamera camera;
     camera.eye    = {0.0f, 0.0f, 20.0f};
@@ -281,18 +164,8 @@ int main() {
         program->uniform_matrix("projection", projection);
         program->uniform_matrix("view", view);
 
-        float t = glfwGetTime() * 25.0f;
-        int count = static_cast<int>(frames.size());
-        int period = count * 2 - 2;
-
-        int i = static_cast<int>(fmodf(t, period));
-        i = count - 1 - std::abs(i - (count - 1));
-
-        const auto& frame = frames[i];
-
-
-        gfx::VertexArray::bind(frame.vao);
-        gfx::draw_triangles_indexed<gfx::IndexType::Uint>({0, static_cast<GLuint>(frame.mesh.indices.size())});
+        gfx::VertexArray::bind(vao);
+        gfx::draw_triangles_indexed<gfx::IndexType::Uint>({0, static_cast<GLuint>(indices.size())});
 
         glfwSwapBuffers(window);
     }
