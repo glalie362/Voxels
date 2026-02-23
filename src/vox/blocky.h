@@ -29,7 +29,7 @@ namespace vox {
             enum { TopLeft, TopRight, BottomRight, BottomLeft, };
 
             const auto push_front_face = [&]() {
-                const unsigned num_verts = static_cast<unsigned int>(vertices.size());
+                const auto num_verts = static_cast<unsigned int>(vertices.size());
                 indices.insert( indices.end(), {
                     num_verts + TopLeft, num_verts + TopRight, num_verts + BottomRight,
                     num_verts + BottomRight, num_verts + BottomLeft, num_verts + TopLeft
@@ -37,7 +37,7 @@ namespace vox {
             };
 
             const auto push_back_face = [&]() {
-                const unsigned num_verts = static_cast<unsigned int>(vertices.size());
+                const auto num_verts = static_cast<unsigned int>(vertices.size());
 
                 indices.insert( indices.end(), {
                     num_verts + TopLeft, num_verts + BottomLeft, num_verts + BottomRight,
@@ -176,7 +176,6 @@ namespace vox {
             std::cout << "time (us): " << duration_microseconds << '\n';
             return mesh;
         };
-
 
         return mesher;
     }

@@ -2,7 +2,7 @@
 # Config
 
 cmake_minimum_required(VERSION 4.1)
-project(voxel_game VERSION 1.0 LANGUAGES CXX)
+project(cyrex_voxels VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 26)
 include(FetchContent)
 
@@ -31,7 +31,6 @@ FetchContent_MakeAvailable(glm)
 #####################
 
 set(SOURCES
-        src/main.cpp
         src/gfx/vertex_array.cpp
         src/gfx/vertex_buffer.cpp
         src/gfx/index_buffer.cpp
@@ -44,8 +43,8 @@ set(SOURCES
 ####################
 
 # Build it
-add_executable(voxel_game ${SOURCES})
-target_link_libraries(voxel_game PRIVATE glfw glm glbinding)
+add_library(cyrex_voxels ${SOURCES})
+target_link_libraries(cyrex_voxels PRIVATE glfw glm glbinding)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(voxel_game PRIVATE -O3 -march=native -flto)
+    target_compile_options(cyrex_voxels PRIVATE -O3 -march=native -flto)
 endif()

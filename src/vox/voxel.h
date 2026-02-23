@@ -10,17 +10,16 @@
 
 namespace vox {
     template<typename V>
-    concept Voxel = requires(V v)
-    {
+    concept Voxel = requires(V v) {
         { v.is_solid() } -> std::convertible_to<bool>;
         { v.colorized() } -> std::convertible_to<glm::vec3>;
+        // TODO some sort of generic make_face feature that takes in vertex corner info
+        // (as to not lock the user into a specific vertex structure)
     };
 
     // an invokable object that returns a voxel
     template<typename Sampler>
-    concept VoxelSampler =
-        requires(Sampler sampler, glm::ivec3 p)
-    {
+    concept VoxelSampler = requires(Sampler sampler, glm::ivec3 p) {
         requires Voxel<std::invoke_result_t<Sampler, glm::ivec3>>;
     };
 
@@ -39,6 +38,13 @@ namespace vox {
         glm::ivec3 from{};
         glm::ivec3 to{};
         // TODO: assert from < to
+
+        [[nodiscard]] constexpr bool contains(const glm::ivec3 p) const noexcept {
+            if (p.x < from.x || p.x > to.x) return false;
+            if (p.y < from.y || p.y > to.y) return false;
+            if (p.z < from.z || p.z > to.z) return false;
+            return true;
+        }
     };
 
     constexpr void each(const Bounds& bounds, auto fn) {
