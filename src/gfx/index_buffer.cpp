@@ -1,10 +1,9 @@
 //
-// Created by Jamie on 11/02/2026.
+// Created by Amelia on 11/02/2026.
 //
 
-#include "index_buffer.h"
-
-#include "glbinding/gl/enum.h"
+#include <cyrex_voxels/gfx/index_buffer.h>
+#include <glbinding/gl/enum.h>
 
 gl::GLuint gfx::detail::make_gl_index_buffer() {
     gl::GLuint index_buffer{};

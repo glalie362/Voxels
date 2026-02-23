@@ -1,12 +1,12 @@
 //
-// Created by Jamie on 11/02/2026.
+// Created by Amelia on 11/02/2026.
 //
 
-#include "vertex_buffer.h"
+#include <cyrex_voxels/gfx/vertex_buffer.h>
 
-#include "glbinding/gl/bitfield.h"
-#include "glbinding/gl/enum.h"
-#include "glbinding/gl/functions.h"
+#include <glbinding/gl/bitfield.h>
+#include <glbinding/gl/enum.h>
+#include <glbinding/gl/functions.h>
 
 gl::GLuint gfx::detail::make_gl_vertex_buffer() {
     gl::GLuint vertex_buffer{};

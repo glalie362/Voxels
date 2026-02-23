@@ -1,5 +1,5 @@
 //
-// Created by Jamie on 11/02/2026.
+// Created by Amelia on 11/02/2026.
 //
 
 #ifndef VOXEL_GAME_SHADER_H
@@ -7,8 +7,8 @@
 #include <string_view>
 #include <expected>
 
-#include "glbinding/gl/types.h"
-#include "glm/fwd.hpp"
+#include <glbinding/gl/types.h>
+#include <glm/fwd.hpp>
 
 namespace gfx {
     struct LinkerError {

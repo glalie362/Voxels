@@ -1,10 +1,10 @@
 //
-// Created by Jamie on 15/02/2026.
+// Created by Amelia on 15/02/2026.
 //
 
 #ifndef CYREX_VOXELS_RAY_H
 #define CYREX_VOXELS_RAY_H
-#include "voxel.h"
+#include <cyrex_voxels/vox/voxel.h>
 #include <glm/glm.hpp>
 #include <optional>
 

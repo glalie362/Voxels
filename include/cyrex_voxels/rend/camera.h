@@ -1,13 +1,13 @@
 //
-// Created by Jamie on 12/02/2026.
+// Created by Amelia on 12/02/2026.
 //
 
 #ifndef VOXEL_GAME_CAMERA_H
 #define VOXEL_GAME_CAMERA_H
-#include "glm/mat4x4.hpp"
-#include "glm/vec3.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "glm/ext/matrix_transform.hpp"
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 namespace rend {
     using Position = glm::vec3;

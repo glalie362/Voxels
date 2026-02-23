@@ -1,10 +1,10 @@
 //
-// Created by Jamie on 12/02/2026.
+// Created by Amelia on 12/02/2026.
 //
 
-#include "camera.h"
+#include <cyrex_voxels/rend/camera.h>
 
-#include "glm/ext/matrix_clip_space.hpp"
+#include <glm/ext/matrix_clip_space.hpp>
 
 glm::mat4 rend::Transform::make_matrix(const Transform &transform) {
     const auto rotation_matrix = glm::mat4_cast(transform.rotation);

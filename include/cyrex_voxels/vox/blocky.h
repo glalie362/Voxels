@@ -1,13 +1,12 @@
 //
-// Created by Jamie on 13/02/2026.
+// Created by Amelia on 13/02/2026.
 //
 
 #ifndef VOXEL_GAME_BLOCKY_H
 #define VOXEL_GAME_BLOCKY_H
 
 #include <chrono>
-
-#include "voxel.h"
+#include <cyrex_voxels/vox/voxel.h>
 
 namespace vox {
     template<VoxelSampler Sampler>

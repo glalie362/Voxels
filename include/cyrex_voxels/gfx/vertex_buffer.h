@@ -1,5 +1,5 @@
 //
-// Created by Jamie on 11/02/2026.
+// Created by Amelia on 11/02/2026.
 //
 
 #ifndef VOXEL_GAME_VERTEX_BUFFER_H

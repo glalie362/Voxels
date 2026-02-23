@@ -2,14 +2,13 @@
 // Created by Jamie on 11/02/2026.
 //
 
-#include "vertex_array.h"
-#include "vertex_buffer.h"
-#include "index_buffer.h"
-#include "glbinding/gl/enum.h"
-#include "glbinding/gl/functions.h"
+#include <cyrex_voxels/gfx/vertex_array.h>
+#include <cyrex_voxels/gfx/vertex_buffer.h>
+#include <cyrex_voxels/gfx/index_buffer.h>
+#include <glbinding/gl/enum.h>
+#include <glbinding/gl/functions.h>
 
-#include <glm/glm.hpp>
-#include "../vox/voxel.h"
+#include <cyrex_voxels/vox/voxel.h>
 
 static gl::GLuint make_vao() {
     gl::GLuint vertex_array;

@@ -44,7 +44,16 @@ set(SOURCES
 
 # Build it
 add_library(cyrex_voxels ${SOURCES})
-target_link_libraries(cyrex_voxels PRIVATE glfw glm glbinding)
+
+target_include_directories(cyrex_voxels
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(cyrex_voxels
+        PUBLIC glfw glm glbinding
+)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(cyrex_voxels PRIVATE -O3 -march=native -flto)
 endif()

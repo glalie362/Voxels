@@ -1,0 +1,12 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "glbinding-glmetad.exe (_deps\\glbinding-build\\glbinding-glmetad.exe)",
+      "name": "glbinding-glmetad.exe (_deps\\glbinding-build\\glbinding-glmetad.exe)"
+    }
+  ]
+}

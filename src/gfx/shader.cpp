@@ -1,15 +1,15 @@
 //
-// Created by Jamie on 11/02/2026.
+// Created by Amelia on 11/02/2026.
 //
-#include "shader.h"
+#include <cyrex_voxels/gfx/shader.h>
 
 #include <fstream>
 #include <optional>
 
-#include "glbinding/gl/enum.h"
-#include "glbinding/gl/functions.h"
+#include <glbinding/gl/enum.h>
+#include <glbinding/gl/functions.h>
 
-#include "glm/mat4x4.hpp"
+#include <glm/mat4x4.hpp>
 
 static gl::GLuint make_shader (const gl::GLenum type, const std::string_view source) {
     const char* source_ptr = source.data();
