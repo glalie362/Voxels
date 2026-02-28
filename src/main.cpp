@@ -17,10 +17,13 @@
 #include <cyrex_voxels/vox/blocky.h>
 #include <cyrex_voxels/rend/camera.h>
 
+#include <cyrex_voxels/vox/transform.h>
+#include <cyrex_voxels/vox/convert.h>
+
 #include <glm/gtx/hash.hpp>
 #include <glm/gtc/noise.hpp>
 
-#include "cyrex_voxels/vox/voxel.h"
+#include "cyrex_voxels/vox/convert.h"
 
 constexpr std::string_view test_vertex_source = R"(
 #version 460 core
@@ -59,12 +62,51 @@ void main()
 }
 )";
 
+enum class MyVoxel {
+    None,
+    Solid
+};
+
+
+auto hash01(const vox::Coord coord) {
+    return static_cast<float>(std::hash<vox::Coord>{}(coord) & 0xFFFF) / static_cast<float>(0xFFFF);
+}
+
+template<>
+struct vox::voxel_traits<MyVoxel> {
+    [[nodiscard]] constexpr static bool is_solid(const MyVoxel voxel) {
+        return voxel != MyVoxel::None;
+    }
+
+    [[nodiscard]] constexpr static Color color(const MyVoxel voxel, const Coord coord) {
+        switch (voxel) {
+            case MyVoxel::None: return {0.0f, 0.0f, 0.0f, 0.0f};
+            case MyVoxel::Solid: return { glm::vec3(1.0f) - glm::vec3(hash01(coord)), 1.0f};
+        }
+    }
+};
+
+
+template<>
+struct vox::voxel_convert_traits<bool, MyVoxel> {
+    [[nodiscard]] constexpr MyVoxel operator()(const bool voxel) {
+        return voxel ? MyVoxel::Solid : MyVoxel::None;
+    }
+};
+
 static vox::VoxelMesh test() {
     using namespace vox::bool_ops;
+    using enum MyVoxel;
+
+    const auto transform = vox::transform{} <<
+        vox::mirror<vox::MirrorAxis::X>();
+
+    const auto shape =
+        vox::make_sphere({0,0,0},10);
 
     const auto sampler =
-        vox::make_sphere_sampler(vox::Coord(0,0,0), 10.0f) &&
-        vox::make_sphere_sampler(vox::Coord(0,10,0), 10.0f);
+        vox::convert<MyVoxel>{} <<
+        (transform << shape);
 
     const auto mesher = vox::make_blocky_mesher(sampler);
 

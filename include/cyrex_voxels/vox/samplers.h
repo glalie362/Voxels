@@ -34,7 +34,7 @@ namespace vox {
 
 		[[nodiscard]] constexpr BooleanSampler auto operator ^ (const BooleanSampler auto& lhs, const BooleanSampler auto& rhs) {
 			return [=](const Coord coord){
-				return lhs(coord) ^ rhs(coord);
+				return static_cast<bool>(lhs(coord) ^ rhs(coord));
 			};
 		}
 
@@ -45,6 +45,35 @@ namespace vox {
 		}
 	}
 
+	template<typename Op, VoxelSampler... Samplers>
+	struct logical {
+		std::tuple<Samplers...> samplers;
+
+		constexpr logical() = default;
+		constexpr logical(std::tuple<Samplers...> s) : samplers(s) {}
+
+		template<VoxelSampler Sampler>
+		[[nodiscard]] constexpr auto operator<<(const Sampler sampler) const {
+			return logical<Op,  Samplers..., Sampler>{
+				std::tuple_cat(samplers, std::tuple{sampler})
+			};
+		}
+
+		[[nodiscard]] constexpr bool operator()(const Coord coord) const {
+			if constexpr (sizeof...(Samplers) == 0) {
+				return false; // or static_assert if you prefer
+			} else {
+				return std::apply([&](const auto& first, const auto&... rest) {
+					Op op;
+					bool result = first(coord);
+					((result = op(result, rest(coord))), ...);
+					return result;
+				}, samplers);
+			}
+		}
+	};
+
+	static_assert(BooleanSampler<logical<std::logical_and<>>>);
 
 	[[nodiscard]] constexpr auto make_bool_to_voxel(const Voxel auto vox_true, const Voxel auto vox_false) {
 		return [=](const bool cond, const Coord) {
@@ -61,8 +90,22 @@ namespace vox {
 		{ callable(voxel, coord) } -> Voxel;
 	};
 
+	[[nodiscard]] constexpr auto identity(const Voxel auto voxel) {
+		return [=](const Coord) {
+			return voxel;
+		};
+	}
+
+	template<VoxelToVoxel<bool> Converter>
+	[[nodiscard]] constexpr auto bool_to_any(const BoolToVoxel auto fn,
+		const Converter converter) {
+		return [=](const Coord coord) {
+			return fn(coord) ? converter(true, coord) : converter(false, coord);
+		};
+	}
+
 	template<BoolToVoxel Converter = decltype(make_bool_to_voxel(true, false))>
-	[[nodiscard]] constexpr auto make_sphere_sampler(
+	[[nodiscard]] constexpr auto make_sphere(
 		const Coord origin,
 		const float radius,
 		Converter converter = make_bool_to_voxel(true, false)
