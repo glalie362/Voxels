@@ -27,6 +27,8 @@
 
 #include <glm/gtx/hash.hpp>
 
+#include "cyrex_voxels/vox/cache.h"
+
 constexpr std::string_view test_vertex_source = R"(
 #version 460 core
 
@@ -69,7 +71,6 @@ enum class MyVoxel {
     Solid
 };
 
-
 auto hash01(const vox::Coord coord) {
     return static_cast<float>(std::hash<vox::Coord>{}(coord) & 0xFFFF) / static_cast<float>(0xFFFF);
 }
@@ -79,7 +80,6 @@ struct vox::voxel_mesh_traits<MyVoxel> {
     [[nodiscard]] constexpr static bool is_visible(const MyVoxel voxel) {
         return voxel != MyVoxel::None;
     }
-
 
     static glm::vec3 rainbow(const Coord coord) {
         const float pi = glm::pi<float>();
@@ -106,22 +106,36 @@ struct vox::voxel_convert_traits<bool, MyVoxel> {
     }
 };
 
-static vox::VoxelMesh test() {
+constexpr static vox::VoxelMesh test() {
     using namespace vox;
+    using namespace vox::bool_ops;
+
+    const auto sphere_cache =
+        flat_cache(sphere(Coord(), 5.0f), cube_bounds(10));
+
+    const auto huge_sphere =
+        sphere(Coord(), 50.0f);
 
     const auto sampler =
-        transform{}
-        << twist<Axis::Y>(30.0f)
-        << repeat({20, 10, 20})
+        huge_sphere &&
+        (transform{}
+        << repeat({20, 20, 20})
         << translate(Coord(-5))
-        << sphere(Coord(), 5.0f);
+        << sphere_cache);
 
-    const auto mesher = make_blocky_mesher(convert<MyVoxel>{} << sampler);
-
-    return mesher({
+    const auto bounds = Bounds{
         .from = {-64, -64, -64},
         .to   = {64, 64, 64},
-    });
+    };
+
+    // cache the entire scene to improve meshing times
+    const auto big_cache = flat_cache(sampler, bounds);
+
+    const auto mesher = make_blocky_mesher(
+        convert<MyVoxel>{} <<
+        big_cache);
+
+    return mesher(bounds);
 }
 
 int main() {

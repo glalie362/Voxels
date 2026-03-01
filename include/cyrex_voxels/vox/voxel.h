@@ -103,7 +103,24 @@ namespace vox {
             if (p.z < from.z || p.z > to.z) return false;
             return true;
         }
+
+        [[nodiscard]] constexpr Coord size() const noexcept {
+            return {
+                to.x - from.x + 1,
+                to.y - from.y + 1,
+                to.z - from.z + 1
+            };
+        }
     };
+
+    [[nodiscard]] constexpr Bounds cube_bounds(const int size) {
+        const int half_size = size / 2;
+
+        return {
+            .from = {-half_size, -half_size, -half_size},
+            .to = {half_size, half_size, half_size},
+        };
+    }
 
     constexpr void each(const Bounds& bounds, auto fn) {
         for (int z = bounds.from.z; z <= bounds.to.z; z++) {

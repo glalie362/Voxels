@@ -39,9 +39,9 @@ namespace vox {
 
 		template<VoxelSampler S>
 		requires (!Transformer<S>)
-		constexpr auto operator<<(S sampler) const {
+		constexpr auto operator<<(const S& sampler) const {
 			auto ops_copy = ops;
-			return [ops_copy, sampler](const Coord coord) {
+			return [ops_copy, &sampler](const Coord coord) {
 				Coord p = coord;
 				std::apply([&](const auto&... op) {
 					((p = op(p)), ...);

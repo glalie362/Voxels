@@ -21,11 +21,11 @@ namespace vox {
 	template<Voxel To>
 	struct convert {
 		template<VoxelSampler Sampler>
-		[[nodiscard]] constexpr auto operator << (const Sampler sampler) {
+		[[nodiscard]] constexpr auto operator << (const Sampler& sampler) {
 			using From = std::invoke_result_t<Sampler, Coord>;
 			using ConvertTraits = voxel_convert_traits<From, To>;
 
-			return [=](const Coord coord) {
+			return [&](const Coord coord) {
 				const auto from = sampler(coord);
 				return ConvertTraits{}(from);
 			};
