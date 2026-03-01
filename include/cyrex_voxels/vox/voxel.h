@@ -14,86 +14,22 @@ namespace vox {
     using Normal = glm::vec3;
     using Coord = glm::ivec3;
 
+    // A template specialization of this is required!
     template<typename Voxel>
-    struct voxel_traits;
-
-
-#pragma region Predefined traits
-
-    // default traits:
-    // white voxel if not zero
-    template<typename Voxel>
-    struct voxel_traits {
-        [[nodiscard]] constexpr static bool is_solid(const Voxel& voxel) {
-            if constexpr (std::equality_comparable_with<Voxel, int>) {
-                return voxel > 0;
-            }
-            else {
-                return false;
-            }
-        }
-
-        [[nodiscard]] constexpr static Color color(const Voxel&, const Coord) {
-            return Color(1.0f, 1.0f, 1.0f, 1.0f);
-        }
-    };
-
-    template<typename T>
-    concept ColoredVoxelWithIsSolidIndicator = requires(T t)
-    {
-        { t.is_solid } -> std::convertible_to<bool>;
-        { t.color } -> std::convertible_to<Color>;
-    };
-
-
-    template<ColoredVoxelWithIsSolidIndicator V>
-    struct voxel_traits<V> {
-        [[nodiscard]] constexpr static bool is_solid(const V& voxel) {
-            return voxel.is_solid;
-        }
-
-        [[nodiscard]] constexpr static Color color(const V& voxel, const Coord) {
-            return voxel.color;
-        }
-    };
-
-    template<>
-    struct voxel_traits<bool> {
-        [[nodiscard]] constexpr static bool is_solid(const bool voxel) {
-            return voxel;
-        }
-
-        [[nodiscard]] constexpr static Color color(const bool, const Coord) {
-            return Color(1.0f);
-        }
-    };
-
-    template<>
-    struct voxel_traits<Color> {
-        [[nodiscard]] constexpr static bool is_solid(const Color voxel) {
-            return voxel.a > 0.0f;
-        }
-
-        [[nodiscard]] constexpr static Color color(const Color voxel, const Coord) {
-            return voxel;
-        }
-    };
-
-#pragma endregion
+    struct voxel_mesh_traits;
 
     template<typename V>
     concept Voxel = requires(V v, Coord c) {
-        { voxel_traits<V>::is_solid(v) } -> std::convertible_to<bool>;
-        { voxel_traits<V>::color(v,c ) } -> std::convertible_to<Color>;
+        { voxel_mesh_traits<V>::is_visible(v) } -> std::same_as<bool>;
+        { voxel_mesh_traits<V>::color(v,c ) } -> std::convertible_to<Color>;
         // TODO some sort of generic make_face feature that takes in vertex corner info
         // (as to not lock the user into a specific vertex structure)
     };
 
-    // an invokable object that returns a voxel
+    // An invokable object that returns a voxel
+    // Usage: sampler(Coord) -> Voxel
     template<typename Sampler>
-    concept VoxelSampler = requires(Sampler sampler, Coord p) {
-        requires Voxel<std::invoke_result_t<Sampler, Coord>>;
-    };
+    concept VoxelSampler = Voxel<std::invoke_result_t<Sampler, Coord>>;
 
     struct VoxelMesh {
         struct Vertex {
@@ -105,6 +41,56 @@ namespace vox {
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
     };
+
+    template<typename Mesher, typename Sampler>
+    concept VoxelMesher =
+     VoxelSampler<Sampler> &&
+     requires(Mesher mesher, const Sampler& sampler)
+    {
+        {mesher(sampler)} -> std::convertible_to<VoxelMesh>;
+    };
+
+#pragma region Predefined traits
+
+    // default traits:
+    // white voxel if not zero
+    template<typename Voxel>
+    struct voxel_mesh_traits {
+        [[nodiscard]] constexpr static bool is_visible(const Voxel& voxel) {
+            if constexpr (std::equality_comparable_with<Voxel, int>) {
+                return voxel > 0;
+            }
+            return false;
+        }
+
+        [[nodiscard]] constexpr static Color color(const Voxel&, const Coord) {
+            return Color(1.0f);
+        }
+    };
+
+    template<>
+    struct voxel_mesh_traits<bool> {
+        [[nodiscard]] constexpr static bool is_visible(const bool voxel) {
+            return voxel;
+        }
+
+        [[nodiscard]] constexpr static Color color(const bool, const Coord) {
+            return Color(1.0f);
+        }
+    };
+
+    template<>
+    struct voxel_mesh_traits<Color> {
+        [[nodiscard]] constexpr static bool is_visible(const Color voxel) {
+            return voxel.a > 0.0f;
+        }
+
+        [[nodiscard]] constexpr static Color color(const Color voxel, const Coord) {
+            return voxel;
+        }
+    };
+
+#pragma endregion
 
     struct Bounds {
         Coord from{};
@@ -140,14 +126,6 @@ namespace vox {
             }
         }
     }
-
-    template<typename Mesher, typename Sampler>
-    concept VoxelMesher =
-        VoxelSampler<Sampler> &&
-        requires(Mesher mesher, const Sampler& sampler)
-    {
-        {mesher(sampler)} -> std::convertible_to<VoxelMesh>;
-    };
 
 }
 
