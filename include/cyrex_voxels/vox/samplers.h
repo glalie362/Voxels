@@ -21,25 +21,25 @@ namespace vox {
 
 	namespace bool_ops {
 		[[nodiscard]] constexpr BooleanSampler auto operator && (const BooleanSampler auto& lhs, const BooleanSampler auto& rhs) {
-			return [=](const Coord coord){
+			return [=](const Coord& coord){
 				return lhs(coord) && rhs(coord);
 			};
 		}
 
 		[[nodiscard]] constexpr BooleanSampler auto operator || (const BooleanSampler auto& lhs, const BooleanSampler auto& rhs) {
-			return [=](const Coord coord){
+			return [=](const Coord& coord){
 				return lhs(coord) || rhs(coord);
 			};
 		}
 
 		[[nodiscard]] constexpr BooleanSampler auto operator ^ (const BooleanSampler auto& lhs, const BooleanSampler auto& rhs) {
-			return [=](const Coord coord){
+			return [=](const Coord& coord){
 				return static_cast<bool>(lhs(coord) ^ rhs(coord));
 			};
 		}
 
 		[[nodiscard]] constexpr BooleanSampler auto operator ! (const BooleanSampler auto& unary) {
-			return [=](const Coord coord){
+			return [=](const Coord& coord){
 				return !unary(coord);
 			};
 		}
@@ -59,7 +59,7 @@ namespace vox {
 			};
 		}
 
-		[[nodiscard]] constexpr bool operator()(const Coord coord) const {
+		[[nodiscard]] constexpr bool operator()(const Coord& coord) const {
 			if constexpr (sizeof...(Samplers) == 0) {
 				return false; // or static_assert if you prefer
 			} else {
@@ -76,7 +76,7 @@ namespace vox {
 	static_assert(BooleanSampler<logical<std::logical_and<>>>);
 
 	[[nodiscard]] constexpr auto make_bool_to_voxel(const Voxel auto vox_true, const Voxel auto vox_false) {
-		return [=](const bool cond, const Coord) {
+		return [=](const bool cond, const Coord&) {
 			return cond ? vox_true : vox_false;
 		};
 	}
@@ -91,7 +91,7 @@ namespace vox {
 	};
 
 	[[nodiscard]] constexpr auto identity(const Voxel auto voxel) {
-		return [=](const Coord) {
+		return [=](const Coord&) {
 			return voxel;
 		};
 	}
@@ -99,23 +99,30 @@ namespace vox {
 	template<VoxelToVoxel<bool> Converter>
 	[[nodiscard]] constexpr auto bool_to_any(const BoolToVoxel auto fn,
 		const Converter converter) {
-		return [=](const Coord coord) {
+		return [=](const Coord& coord) {
 			return fn(coord) ? converter(true, coord) : converter(false, coord);
 		};
 	}
 
 	template<BoolToVoxel Converter = decltype(make_bool_to_voxel(true, false))>
-	[[nodiscard]] constexpr auto make_sphere(
-		const Coord origin,
+	[[nodiscard]] constexpr auto sphere(
+		const Coord&& origin,
 		const float radius,
 		Converter converter = make_bool_to_voxel(true, false)
 	) {
 		const float radius_squared = radius * radius;
 
-		return [=](const Coord coord) {
+		return [=](const Coord& coord) {
 			const auto coord_float = glm::vec3(coord - origin);
 			const auto dist_squared = glm::dot(coord_float, coord_float);
 			return converter(dist_squared <= radius_squared, coord);
+		};
+	}
+
+	template<BoolToVoxel Converter = decltype(make_bool_to_voxel(true, false))>
+	[[nodiscard]] constexpr auto box(const Bounds bounds, const Converter converter = make_bool_to_voxel(true, false)) {
+		return [=](const Coord& coord) {
+			return converter(bounds.contains(coord), coord);
 		};
 	}
 

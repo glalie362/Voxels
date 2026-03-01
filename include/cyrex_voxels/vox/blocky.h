@@ -15,8 +15,8 @@ namespace vox {
     }
 
     template<VoxelSampler Sampler>
-    [[nodiscard]] auto make_blocky_mesher(const Sampler& sampler) {
-        return [&sampler](const Bounds& bounds) -> VoxelMesh {
+    [[nodiscard]] auto make_blocky_mesher(const Sampler sampler) {
+        return [sampler](const Bounds& bounds) -> VoxelMesh {
             VoxelMesh mesh{};
             mesh.vertices.reserve(0xFFFF);
             mesh.indices.reserve(0xFFFF);
@@ -28,28 +28,28 @@ namespace vox {
             constexpr glm::ivec3 Front {0, 0, 1};
             constexpr glm::ivec3 Back {0, 0, -1};
 
-            sample_each(bounds, sampler, [&]<typename Voxel>(const Coord p, const Voxel& voxel) {
-                using traits = voxel_traits<Voxel>;
+            sample_each(bounds, sampler, [&]<typename Voxel>(const Coord p, const Voxel voxel) {
+                using traits = voxel_mesh_traits<Voxel>;
+                if (!traits::is_visible(voxel)) return;
 
-                if (!traits::is_solid(voxel)) return;
-
-                const auto get = [&](const auto p) -> decltype(sampler(Coord())){
-                    if (p.x < bounds.from.x || p.x > bounds.to.x) return {};
-                    if (p.y < bounds.from.y || p.y > bounds.to.y) return {};
-                    if (p.z < bounds.from.z || p.z > bounds.to.z) return {};
-                    return sampler(p);
+                const auto get = [&](const auto p) -> bool {
+                    if (p.x < bounds.from.x || p.x > bounds.to.x) return false;
+                    if (p.y < bounds.from.y || p.y > bounds.to.y) return false;
+                    if (p.z < bounds.from.z || p.z > bounds.to.z) return false;
+                    return traits::is_visible(sampler(p));
                 };
 
                 // use this to look up the pre-computed shape of the voxel
                 const std::uint8_t mask =
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Up)))   << 0) |
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Down))) << 1) |
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Left))) << 2) |
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Right)))<< 3) |
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Front)))<< 4) |
-                        (static_cast<std::uint8_t>(!traits::is_solid(get(p + Back))) << 5);
+                        (static_cast<std::uint8_t>(!get(p + Up))   << 0) |
+                        (static_cast<std::uint8_t>(!get(p + Down)) << 1) |
+                        (static_cast<std::uint8_t>(!get(p + Left)) << 2) |
+                        (static_cast<std::uint8_t>(!get(p + Right)) << 3) |
+                        (static_cast<std::uint8_t>(!get(p + Front)) << 4) |
+                        (static_cast<std::uint8_t>(!get(p + Back)) << 5);
 
                 if (!mask) return;
+
 
                 const auto num_vertices = mesh.vertices.size();
                 const auto& lookup = blocky_detail::lookup_table.at(mask);

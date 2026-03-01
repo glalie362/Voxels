@@ -39,7 +39,6 @@ namespace gfx {
                 case IndexType::Ushort: return gl::GL_UNSIGNED_SHORT;
                 case IndexType::Uint: return gl::GL_UNSIGNED_INT;
             }
-            std::unreachable();
         };
         gl::glDrawElements(gl::GLenum::GL_TRIANGLES, range.count(), ty(index_type), nullptr);
     }

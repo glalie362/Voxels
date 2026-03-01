@@ -20,10 +20,8 @@ namespace vox {
 
 	template<Voxel To>
 	struct convert {
-		[[nodiscard]] constexpr auto operator << (const auto sampler) {
-			using Sampler = decltype(sampler);
-			static_assert(VoxelSampler<decltype(sampler)>);
-
+		template<VoxelSampler Sampler>
+		[[nodiscard]] constexpr auto operator << (const Sampler sampler) {
 			using From = std::invoke_result_t<Sampler, Coord>;
 			using ConvertTraits = voxel_convert_traits<From, To>;
 
