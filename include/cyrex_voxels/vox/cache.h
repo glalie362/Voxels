@@ -13,7 +13,7 @@ namespace vox {
 		using Voxel = std::invoke_result_t<Sampler, Coord>;
 
 		struct Cache {
-			std::unique_ptr<Voxel[]> voxels;
+			std::vector<Voxel> voxels;
 			Bounds bounds;
 			int width{};
 			int height{};
@@ -35,18 +35,18 @@ namespace vox {
 				width = size.x;
 				height = size.y;
 				const std::size_t volume = size.x * size.y * size.z;
-				voxels = std::make_unique<Voxel[]>(volume);
+				voxels.resize(volume);
 				each(bounds, [&, index = 0](const Coord coord) mutable {
 					voxels[index++] = sampler(coord);
 				});
 			}
-
-			Cache(const Cache&) = delete;
-			Cache& operator = (const Cache&) = delete;
 		};
 
 		return Cache(sampler, bounds);
 	}
+
+	// to do: octrees
+
 }
 
 #endif //CYREX_VOXELS_CACHE_H

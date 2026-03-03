@@ -38,6 +38,7 @@ set(SOURCES
         src/gfx/shader.cpp
         src/rend/camera.cpp
         src/vox/blocky.cpp
+        src/vox/marching.cpp
 )
 
 
@@ -61,5 +62,5 @@ target_link_libraries(cyrex_voxels
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Testing")
-    target_compile_options(cyrex_voxels PRIVATE -O2 -march=native -flto)
+    target_compile_options(cyrex_voxels PRIVATE -O3 -march=native -flto)
 endif()

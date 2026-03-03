@@ -45,6 +45,14 @@ namespace vox {
 		}
 	}
 
+	namespace blend_ops {
+		[[nodiscard]] constexpr VoxelSampler auto operator | (const VoxelSampler auto& lhs, const VoxelSampler auto& rhs) {
+			return [=](const Coord& coord){
+				return lhs(coord) | rhs(coord);
+			};
+		}
+	}
+
 	template<typename Op, VoxelSampler... Samplers>
 	struct logical {
 		std::tuple<Samplers...> samplers;
@@ -73,9 +81,7 @@ namespace vox {
 		}
 	};
 
-	static_assert(BooleanSampler<logical<std::logical_and<>>>);
-
-	[[nodiscard]] constexpr auto make_bool_to_voxel(const Voxel auto vox_true, const Voxel auto vox_false) {
+	[[nodiscard]] constexpr auto bool_to_voxel(const Voxel auto vox_true, const Voxel auto vox_false) {
 		return [=](const bool cond, const Coord&) {
 			return cond ? vox_true : vox_false;
 		};
@@ -104,11 +110,11 @@ namespace vox {
 		};
 	}
 
-	template<BoolToVoxel Converter = decltype(make_bool_to_voxel(true, false))>
+	template<BoolToVoxel Converter = decltype(bool_to_voxel(true, false))>
 	[[nodiscard]] constexpr auto sphere(
-		const Coord&& origin,
+		const Coord& origin,
 		const float radius,
-		Converter converter = make_bool_to_voxel(true, false)
+		Converter converter = bool_to_voxel(true, false)
 	) {
 		const float radius_squared = radius * radius;
 
@@ -119,13 +125,33 @@ namespace vox {
 		};
 	}
 
-	template<BoolToVoxel Converter = decltype(make_bool_to_voxel(true, false))>
-	[[nodiscard]] constexpr auto box(const Bounds bounds, const Converter converter = make_bool_to_voxel(true, false)) {
+	template<BoolToVoxel Converter = decltype(bool_to_voxel(true, false))>
+	[[nodiscard]] constexpr auto cylinder(
+		const Coord& origin,
+		const float radius,
+		const int height,
+		Converter converter = bool_to_voxel(true, false)
+	) {
+		const float radius_squared = radius * radius;
+		const auto origin_xz = glm::vec2(origin.x,origin.z);
+
+		return [=](const Coord& coord) {
+			if (coord.y < origin.y) return false;
+			if (coord.y > origin.y + height) return false;
+
+			const auto coord_xz = glm::vec2(coord.x,coord.z);
+			const auto coord_float = coord_xz - origin_xz;
+			const auto dist_squared = glm::dot(coord_float, coord_float);
+			return converter(dist_squared <= radius_squared, coord);
+		};
+	}
+
+	template<BoolToVoxel Converter = decltype(bool_to_voxel(true, false))>
+	[[nodiscard]] constexpr auto box(const Bounds bounds, const Converter converter = bool_to_voxel(true, false)) {
 		return [=](const Coord& coord) {
 			return converter(bounds.contains(coord), coord);
 		};
 	}
-
 }
 
 #endif //CYREX_VOXELS_SAMPLERS_H

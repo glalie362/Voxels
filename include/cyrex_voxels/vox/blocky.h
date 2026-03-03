@@ -15,8 +15,8 @@ namespace vox {
     }
 
     template<VoxelSampler Sampler>
-    [[nodiscard]] auto make_blocky_mesher(const Sampler sampler) {
-        return [sampler](const Bounds& bounds) -> VoxelMesh {
+    [[nodiscard]] auto make_blocky_mesher(const Sampler& sampler) {
+        return [&sampler](const Bounds& bounds) -> VoxelMesh {
             VoxelMesh mesh{};
             mesh.vertices.reserve(0xFFFF);
             mesh.indices.reserve(0xFFFF);
@@ -70,6 +70,7 @@ namespace vox {
             return mesh;
         };
     }
+
 }
 
 #endif //VOXEL_GAME_BLOCKY_H
