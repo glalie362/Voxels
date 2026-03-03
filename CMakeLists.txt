@@ -37,13 +37,20 @@ set(SOURCES
         src/gfx/drawing.cpp
         src/gfx/shader.cpp
         src/rend/camera.cpp
+        src/vox/blocky.cpp
+        src/vox/marching.cpp
 )
 
 
 ####################
 
 # Build it
-add_library(cyrex_voxels ${SOURCES})
+
+if(CMAKE_BUILD_TYPE STREQUAL "Testing" OR CMAKE_BUILD_TYPE STREQUAL "TestingDebug")
+    add_executable(cyrex_voxels ${SOURCES} src/main.cpp)
+else()
+    add_library(cyrex_voxels ${SOURCES})
+endif()
 
 target_include_directories(cyrex_voxels
     PUBLIC
@@ -54,6 +61,6 @@ target_link_libraries(cyrex_voxels
         PUBLIC glfw glm glbinding
 )
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "Testing")
     target_compile_options(cyrex_voxels PRIVATE -O3 -march=native -flto)
 endif()
