@@ -29,10 +29,10 @@ namespace vox {
     }
 
     template<VoxelSampler Sampler>
-    [[nodiscard]] auto make_marching_mesher(const Sampler& sampler) {
+    [[nodiscard]] constexpr auto make_marching_mesher(const Sampler& sampler) {
         return [=](const Bounds& bounds) -> VoxelMesh {
             using Voxel = std::invoke_result_t<Sampler, Coord>;
-            using traits = voxel_mesh_traits<Voxel>;
+            using MeshTraits = voxel_mesh_traits<Voxel>;
 
             const auto get = [&](const Coord coord) -> Voxel{
                 if (bounds.contains(coord)) return sampler(coord);
@@ -57,8 +57,7 @@ namespace vox {
                     const auto voxel = get(p);
                     neighbours[i] = voxel;
 
-
-                    values[i] = traits::is_visible(voxel) ? 1.0f : 0.0f;
+                    values[i] = MeshTraits::is_visible(voxel) ? 1.0f : 0.0f;
                     positions[i] = glm::vec3(p);
 
                     if (values[i] > 0.5f) {
@@ -107,7 +106,7 @@ namespace vox {
                         const Coord coord = base + marching_detail::corner_offsets[corner];
                         const auto& neighbour_voxel = neighbours[corner];
 
-                        v.color = traits::color(neighbour_voxel, coord);
+                        v.color = MeshTraits::color(neighbour_voxel, coord);
 
                         mesh.vertices.emplace_back(v);
                     }
@@ -125,9 +124,9 @@ namespace vox {
                     v1.normal = normal;
                     v2.normal = normal;
 
-                    mesh.indices.emplace_back(start_index + 0);
-                    mesh.indices.emplace_back(start_index + 1);
                     mesh.indices.emplace_back(start_index + 2);
+                    mesh.indices.emplace_back(start_index + 1);
+                    mesh.indices.emplace_back(start_index + 0);
                 }
             }
 

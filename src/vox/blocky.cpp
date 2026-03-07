@@ -19,21 +19,21 @@ const std::array<vox::VoxelMesh, 64> vox::blocky_detail::lookup_table = []() {
         auto& [vertices, indices] = lookup_table.at(config);
 
         enum { TopLeft, TopRight, BottomRight, BottomLeft, };
-
         const auto push_front_face = [&]() {
             const auto num_verts = static_cast<unsigned int>(vertices.size());
-            indices.insert( indices.end(), {
-                num_verts + TopLeft, num_verts + TopRight, num_verts + BottomRight,
-                num_verts + BottomRight, num_verts + BottomLeft, num_verts + TopLeft
-            });
+
+            indices.insert(indices.end(), {
+               num_verts + TopLeft,     num_verts + TopRight,    num_verts + BottomRight,
+               num_verts + BottomRight, num_verts + BottomLeft,  num_verts + TopLeft
+           });
         };
 
         const auto push_back_face = [&]() {
             const auto num_verts = static_cast<unsigned int>(vertices.size());
 
-            indices.insert( indices.end(), {
-                num_verts + TopLeft, num_verts + BottomLeft, num_verts + BottomRight,
-                num_verts + BottomRight, num_verts + TopRight, num_verts + TopLeft
+            indices.insert(indices.end(), {
+                num_verts + TopLeft,     num_verts + BottomLeft,  num_verts + BottomRight,
+                num_verts + BottomRight, num_verts + TopRight,    num_verts + TopLeft
             });
         };
 
@@ -87,7 +87,7 @@ const std::array<vox::VoxelMesh, 64> vox::blocky_detail::lookup_table = []() {
         }
 
         if (is_front_face) {
-            push_front_face();
+            push_back_face();
             vertices.insert(vertices.end(), {
                 Vertex{.position =  {0.0f, 1.0f, 1.0f}, .normal = Front},
                 Vertex{.position =  {1.0f, 1.0f, 1.0f}, .normal = Front},

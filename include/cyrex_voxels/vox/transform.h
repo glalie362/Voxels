@@ -31,7 +31,7 @@ namespace vox {
 		constexpr transformer(const std::tuple<Ops...> o) : ops(o) {}
 
 		template<Transformer Op>
-		constexpr auto operator << (const Op op) const {
+		constexpr auto operator | (const Op op) const {
 			return transformer<Ops..., Op>{
 				std::tuple_cat(ops, std::tuple{op})
 			};
@@ -39,7 +39,7 @@ namespace vox {
 
 		template<VoxelSampler S>
 		requires (!Transformer<S>)
-		constexpr auto operator<<(const S& sampler) const {
+		constexpr auto operator|(const S& sampler) const {
 			auto ops_copy = ops;
 			return [ops_copy, &sampler](const Coord coord) {
 				Coord p = coord;
@@ -53,13 +53,13 @@ namespace vox {
 
 	struct transform {
 		template<Transformer Op>
-		[[nodiscard]] constexpr auto operator<<(const Op op) const {
+		[[nodiscard]] constexpr auto operator|(const Op op) const {
 			return transformer<Op>{ std::tuple{op} };
 		}
 
 		template<VoxelSampler Sampler>
 		requires (!Transformer<Sampler>)	// prevent compiler from self confusion
-		[[nodiscard]] constexpr auto operator<<(const Sampler sampler) const {
+		[[nodiscard]] constexpr auto operator|(const Sampler sampler) const {
 			return sampler;
 		}
 	};
@@ -99,7 +99,7 @@ namespace vox {
 		};
 	}
 
-	[[nodiscard]] constexpr auto snap(const int size) {
+	[[nodiscard]] constexpr auto snap(const Coord size) {
 		return transform_op {
 		[=](const Coord coord) {
 				return Coord(

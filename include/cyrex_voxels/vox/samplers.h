@@ -61,7 +61,7 @@ namespace vox {
 		constexpr logical(std::tuple<Samplers...> s) : samplers(s) {}
 
 		template<VoxelSampler Sampler>
-		[[nodiscard]] constexpr auto operator<<(const Sampler sampler) const {
+		[[nodiscard]] constexpr auto operator|(const Sampler sampler) const {
 			return logical<Op,  Samplers..., Sampler>{
 				std::tuple_cat(samplers, std::tuple{sampler})
 			};

@@ -28,8 +28,8 @@
 
 #include <glm/gtx/hash.hpp>
 
-#include "cyrex_voxels/vox/cache.h"
-#include "cyrex_voxels/vox/marching.h"
+#include <cyrex_voxels/vox/cache.h>
+#include <cyrex_voxels/vox/marching.h>
 
 constexpr std::string_view test_vertex_source = R"(
 #version 460 core
@@ -62,135 +62,15 @@ out vec4 frag;
 
 void main()
 {
-    float light = 0.5 + 0.5 * dot(normal, normalize(vec3(0.5, 0.75, 0.1)));
-    light = max(light, 0.1);
+    float light = 0.5 + 0.5 * dot(normal, normalize(vec3(0.2, 0.75, 0.12)));
+    light = max(light, 0.4);
     frag = vec4(color * light, 1.0);
 }
 )";
 
-enum class MyVoxel {
-    None,
-    Solid
-};
-
-auto hash01(const vox::Coord coord) {
-    return static_cast<float>(std::hash<vox::Coord>{}(coord) & 0xFFFF) / static_cast<float>(0xFFFF);
-}
-
-template<>
-struct vox::voxel_mesh_traits<MyVoxel> {
-    [[nodiscard]] constexpr static bool is_visible(const MyVoxel voxel) {
-        return voxel != MyVoxel::None;
-    }
-
-    static glm::vec3 rainbow(const Coord coord) {
-        const float pi = glm::pi<float>();
-        const float shift = glm::radians(120.0f);
-        const float radians = glm::radians(float(coord.y)) * pi;
-
-        return glm::vec3(0.5f) + glm::vec3(0.5f) *
-            glm::sin(glm::vec3(radians, radians + shift, radians - shift));
-    }
-
-    [[nodiscard]] constexpr static Color color(const MyVoxel voxel, const Coord coord) {
-        switch (voxel) {
-            case MyVoxel::None: return {0.0f, 0.0f, 0.0f, 0.0f};
-            case MyVoxel::Solid: return {rainbow(coord) - glm::vec3(hash01(coord) * 0.1f), 1.0f};
-        }
-    }
-};
-
-template<>
-struct vox::voxel_convert_traits<bool, MyVoxel> {
-    [[nodiscard]] constexpr MyVoxel operator()(const bool voxel) const {
-        return voxel ? MyVoxel::Solid : MyVoxel::None;
-    }
-};
-
-
-enum class TerrainVoxel {
-    None,
-    Grass,
-    Sand,
-    Dirt,
-    Wood,
-    Leaves
-};
-
-[[nodiscard]] constexpr TerrainVoxel operator | (const TerrainVoxel lhs, const TerrainVoxel rhs) {
-    if (lhs == TerrainVoxel::None) return rhs;
-    if (rhs == TerrainVoxel::None) return lhs;
-    return rhs;
-}
-
-template<>
-struct vox::voxel_mesh_traits<TerrainVoxel> {
-    [[nodiscard]] constexpr static bool is_visible(const TerrainVoxel voxel) {
-        return voxel != TerrainVoxel::None;
-    }
-
-    [[nodiscard]] constexpr static Color color(const TerrainVoxel voxel, const Coord coord) {
-        switch (voxel) {
-            case TerrainVoxel::None: return {0.0f, 0.0f, 0.0f, 0.0f};
-            case TerrainVoxel::Grass: return Color(0.2f, 0.8f, 0.1f, 1.0f) - hash01(coord) * 0.1f;
-            case TerrainVoxel::Sand: return {1.0f, 0.9f, 0.5f, 1.0f};
-            case TerrainVoxel::Dirt: return {0.6f, 0.4f, 0.4f, 1.0f};
-            case TerrainVoxel::Wood: return {0.3f, 0.2f, 0.1f, 1.0f};
-            case TerrainVoxel::Leaves: return {0.0f, 0.4f, 0.0f, 1.0f};
-        }
-    }
-};
-
-
-#include <chrono>
-
 constexpr static vox::VoxelMesh test() {
     using namespace vox;
-
-    const int size = 256;
-
-    constexpr auto world_bounds = Bounds{
-        .from = {-size, -64, -size},
-        .to   = {size, 64, size},
-    };
-
-    const auto heightmap = flat_cache([&](const Coord coord) {
-        return 0.5f + 0.5f * glm::perlin(glm::vec2(coord.x, coord.z) * 0.0125f) * 30.0f;
-    }, {{-size, 0, -size}, {size, 0, size}});
-
-    const auto sphere_cutout = flat_cache(sphere(Coord(), 10), cube_bounds(20));
-
-    const auto cut = [](const auto left, const auto right) {
-        return [=](const Coord& coord) {
-            const auto a = left(coord);
-            const auto b = right(coord);
-            if (b) return decltype(a){};
-            return a;
-        };
-    };
-
-    const auto terrain_sampler = [&](const Coord coord) {
-        const int diff = coord.y - heightmap(Coord(coord.x, 0, coord.z));
-        if (diff > 0) return TerrainVoxel::None;
-        if (diff == 0) { return coord.y < -8 ? TerrainVoxel::Sand : TerrainVoxel::Grass; }
-        return TerrainVoxel::Dirt;
-    };
-
-    const auto cutout_sampler = flat_cache(
-        transform{}
-        // << translate({10, 0, 0})
-        // << repeat({50, 0, 50})
-        << sphere_cutout,
-        world_bounds);
-
-    const auto start = std::chrono::high_resolution_clock::now();
-    const auto big_cache = flat_cache(cut(terrain_sampler, cutout_sampler), world_bounds);
-    const auto end = std::chrono::high_resolution_clock::now();
-    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-    std::cout << "big_cache build time: " << duration.count() << " ms\n";
-    const auto mesher = make_marching_mesher(big_cache);
-    return mesher(world_bounds);
+    return {};
 }
 
 int main() {
@@ -229,6 +109,8 @@ int main() {
     glDepthFunc(GL_LESS);
 
     glClearColor(0.3f, 0.7f, 1.0f, 1.0f);
+
+    // glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

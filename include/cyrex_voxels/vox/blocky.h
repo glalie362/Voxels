@@ -49,8 +49,6 @@ namespace vox {
                         (static_cast<std::uint8_t>(!get(p + Back)) << 5);
 
                 if (!mask) return;
-
-
                 const auto num_vertices = mesh.vertices.size();
                 const auto& lookup = blocky_detail::lookup_table.at(mask);
 
